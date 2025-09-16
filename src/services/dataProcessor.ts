@@ -175,9 +175,11 @@ export class DataProcessor {
 
     const isSuccessful = this.SUCCESSFUL_RESULTS.has(attack.result)
     
+    // Always add respect_gain (can be negative for losses)
+    stats.totalRespect += attack.respect_gain
+    
     if (isSuccessful) {
       stats.successfulAttacks++
-      stats.totalRespect += attack.respect_gain
       
       // Track best hits separately for regular and bonus (only on successful attacks)
       if (this.detectBonusHit(attack)) {
@@ -189,16 +191,14 @@ export class DataProcessor {
 
     if (attack.isWar) {
       stats.warAttacks++
-      if (isSuccessful) {
-        stats.warRespect += attack.respect_gain
-      }
+      // Always add respect_gain for war attacks (can be negative)
+      stats.warRespect += attack.respect_gain
     }
 
     if (attack.isChain) {
       stats.chainAttacks++
-      if (isSuccessful) {
-        stats.chainRespect += attack.respect_gain
-      }
+      // Always add respect_gain for chain attacks (can be negative)
+      stats.chainRespect += attack.respect_gain
     }
 
     if (attack.isBonusHit) {
