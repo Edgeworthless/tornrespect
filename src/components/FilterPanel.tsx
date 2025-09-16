@@ -93,7 +93,7 @@ export default function FilterPanel() {
                         : state.filters.time.preset === preset.key
                         ? preset.key === 'all'
                           ? 'bg-orange-600 dark:bg-orange-500 text-white'
-                          : 'bg-blue-600 dark:bg-blue-500 text-white'
+                          : 'bg-orange-600 dark:bg-orange-500 text-white'
                         : preset.key === 'all'
                           ? 'bg-orange-100 dark:bg-orange-900/50 text-orange-700 dark:text-orange-300 hover:bg-orange-200 dark:hover:bg-orange-800/50'
                           : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
@@ -179,7 +179,7 @@ export default function FilterPanel() {
                     className={`mt-1 block w-full rounded-md border px-3 py-2 text-sm focus:outline-none focus:ring-2 ${
                       state.isLoading
                         ? 'border-gray-200 dark:border-gray-700 bg-gray-100 dark:bg-gray-800 text-gray-400 dark:text-gray-600 cursor-not-allowed'
-                        : 'border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-blue-500'
+                        : 'border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-orange-500'
                     }`}
                   />
                 </div>
@@ -204,7 +204,7 @@ export default function FilterPanel() {
                     className={`mt-1 block w-full rounded-md border px-3 py-2 text-sm focus:outline-none focus:ring-2 ${
                       state.isLoading
                         ? 'border-gray-200 dark:border-gray-700 bg-gray-100 dark:bg-gray-800 text-gray-400 dark:text-gray-600 cursor-not-allowed'
-                        : 'border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-blue-500'
+                        : 'border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-orange-500'
                     }`}
                   />
                 </div>
@@ -230,7 +230,7 @@ export default function FilterPanel() {
                     onChange={(e) =>
                       handleMemberFilterChange({ searchQuery: e.target.value })
                     }
-                    className="w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500"
                   />
 
                   {state.factionData && (
@@ -257,7 +257,7 @@ export default function FilterPanel() {
                               : state.filters.members.formerMembersOnly
                           })
                         }
-                        className="rounded border-gray-300 dark:border-gray-600 text-blue-600 focus:ring-blue-500 dark:bg-gray-700"
+                        className="rounded border-gray-300 dark:border-gray-600 text-orange-600 focus:ring-orange-500 dark:bg-gray-700"
                       />
                       <span className="ml-2 text-sm text-gray-700 dark:text-gray-300">
                         Current members only
@@ -276,7 +276,7 @@ export default function FilterPanel() {
                               : state.filters.members.currentMembersOnly
                           })
                         }
-                        className="rounded border-gray-300 dark:border-gray-600 text-blue-600 focus:ring-blue-500 dark:bg-gray-700"
+                        className="rounded border-gray-300 dark:border-gray-600 text-orange-600 focus:ring-orange-500 dark:bg-gray-700"
                       />
                       <span className="ml-2 text-sm text-gray-700 dark:text-gray-300">
                         Former members only
@@ -317,7 +317,7 @@ export default function FilterPanel() {
                                 attackTypes: newTypes
                               })
                             }}
-                            className="rounded border-gray-300 dark:border-gray-600 text-blue-600 focus:ring-blue-500 dark:bg-gray-700"
+                            className="rounded border-gray-300 dark:border-gray-600 text-orange-600 focus:ring-orange-500 dark:bg-gray-700"
                           />
                           <span className="ml-1 text-xs text-gray-700 dark:text-gray-300">
                             {type.label}
@@ -347,7 +347,7 @@ export default function FilterPanel() {
                                   )
                               handleAttackFilterChange({ results: newResults })
                             }}
-                            className="rounded border-gray-300 dark:border-gray-600 text-blue-600 focus:ring-blue-500 dark:bg-gray-700"
+                            className="rounded border-gray-300 dark:border-gray-600 text-orange-600 focus:ring-orange-500 dark:bg-gray-700"
                           />
                           <span className="ml-1 text-xs text-gray-700 dark:text-gray-300">
                             {result.label}
@@ -370,7 +370,7 @@ export default function FilterPanel() {
                             includeBonusHits: e.target.checked
                           })
                         }
-                        className="rounded border-gray-300 dark:border-gray-600 text-blue-600 focus:ring-blue-500 dark:bg-gray-700"
+                        className="rounded border-gray-300 dark:border-gray-600 text-orange-600 focus:ring-orange-500 dark:bg-gray-700"
                       />
                       <span className="ml-2 text-xs text-gray-700 dark:text-gray-300">
                         Include Bonus Hits
@@ -443,7 +443,7 @@ function MemberMultiSelect({
         {selectedMembers.length > 0 && (
           <button
             onClick={clearAll}
-            className="text-xs text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300"
+            className="text-xs text-orange-600 dark:text-orange-400 hover:text-orange-800 dark:hover:text-orange-300"
           >
             Clear All
           </button>
@@ -461,7 +461,7 @@ function MemberMultiSelect({
       <div className="relative">
         <button
           onClick={() => setIsExpanded(!isExpanded)}
-          className="w-full text-left px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 rounded-md hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full text-left px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 rounded-md hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-orange-500"
         >
           {selectedMembers.length === 0 
             ? 'Select members to compare...' 
@@ -500,7 +500,7 @@ function MemberMultiSelect({
                     type="checkbox"
                     checked={selectedMembers.includes(member.memberId)}
                     onChange={() => handleMemberToggle(member.memberId)}
-                    className="rounded border-gray-300 dark:border-gray-600 text-blue-600 focus:ring-blue-500 dark:bg-gray-700 mr-2"
+                    className="rounded border-gray-300 dark:border-gray-600 text-orange-600 focus:ring-orange-500 dark:bg-gray-700 mr-2"
                   />
                   <span className="text-sm text-gray-900 dark:text-gray-100">
                     {member.name}

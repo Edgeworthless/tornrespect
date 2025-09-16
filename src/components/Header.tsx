@@ -120,7 +120,7 @@ export default function Header() {
                 <button
                   onClick={handleLoadData}
                   disabled={!state.apiClient || isLoadingData}
-                  className="inline-flex items-center gap-1 rounded-lg bg-blue-600 px-3 py-1.5 text-xs font-medium text-white shadow-sm transition-colors hover:bg-blue-700 disabled:bg-gray-400"
+                  className="inline-flex items-center gap-1 rounded-lg bg-orange-600 px-3 py-1.5 text-xs font-medium text-white shadow-sm transition-colors hover:bg-orange-700 disabled:bg-gray-400"
                   title="Sync faction data"
                 >
                   <ArrowPathIcon className={`h-3 w-3 ${isLoadingData ? 'animate-spin' : ''}`} />
@@ -182,7 +182,7 @@ export default function Header() {
               <button
                 onClick={handleLoadData}
                 disabled={!state.apiClient || isLoadingData}
-                className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow-sm transition-colors hover:bg-blue-700 disabled:bg-gray-400"
+                className="inline-flex items-center gap-2 rounded-lg bg-orange-600 px-4 py-2 text-sm font-medium text-white shadow-sm transition-colors hover:bg-orange-700 disabled:bg-gray-400"
                 title="Sync faction data"
               >
                 <ArrowPathIcon className={`h-4 w-4 ${isLoadingData ? 'animate-spin' : ''}`} />
@@ -246,10 +246,10 @@ export default function Header() {
         </div>
 
         {state.loadingProgress && (
-          <div className="border-t border-blue-200 dark:border-blue-800 bg-blue-50 dark:bg-blue-900/50 px-4 py-3">
+          <div className="border-t border-orange-200 dark:border-orange-800 bg-orange-50 dark:bg-orange-900/50 px-4 py-3">
             <div className="mx-auto max-w-7xl">
               <div className="flex items-center justify-between">
-                <span className="text-sm text-blue-700 dark:text-blue-300">
+                <span className="text-sm text-orange-700 dark:text-orange-300">
                   Loading faction data...{' '}
                   {state.loadingProgress.current.toLocaleString()} attacks processed
                   {state.loadingProgress.total 
@@ -257,10 +257,10 @@ export default function Header() {
                     : ' (fetching in batches...)'
                   }
                 </span>
-                <div className="h-2 w-64 rounded-full bg-blue-200 dark:bg-blue-800">
+                <div className="h-2 w-64 rounded-full bg-orange-200 dark:bg-orange-800">
                   <div
                     className={`h-2 rounded-full transition-all duration-300 ${
-                      state.loadingProgress.total ? 'bg-blue-600 dark:bg-blue-400' : 'bg-blue-600 dark:bg-blue-400 animate-pulse'
+                      state.loadingProgress.total ? 'bg-orange-600 dark:bg-orange-400' : 'bg-orange-600 dark:bg-orange-400 animate-pulse'
                     }`}
                     style={{
                       width: state.loadingProgress.total
@@ -319,7 +319,7 @@ export default function Header() {
                   value={apiKeyInput}
                   onChange={(e) => setApiKeyInput(e.target.value)}
                   placeholder="Enter your Torn API key"
-                  className="w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 px-3 py-2 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 px-3 py-2 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-orange-500"
                   required
                 />
                 <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">
@@ -339,7 +339,7 @@ export default function Header() {
                 )}
                 <button
                   type="submit"
-                  className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-700"
+                  className="rounded-md bg-orange-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-orange-700"
                 >
                   Save
                 </button>
@@ -374,16 +374,16 @@ export default function Header() {
                     Cache Management
                   </h3>
                   {state.hasCachedData && (
-                    <div className="mb-3 p-3 bg-blue-50 dark:bg-blue-900/50 border border-blue-200 dark:border-blue-800 rounded-md">
+                    <div className="mb-3 p-3 bg-orange-50 dark:bg-orange-900/50 border border-orange-200 dark:border-orange-800 rounded-md">
                       <div className="flex items-start">
-                        <svg className="h-4 w-4 text-blue-400 dark:text-blue-300 mt-0.5 mr-2 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                        <svg className="h-4 w-4 text-orange-400 dark:text-orange-300 mt-0.5 mr-2 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
                           <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
                         </svg>
                         <div>
-                          <h4 className="text-sm font-medium text-blue-800 dark:text-blue-200">
+                          <h4 className="text-sm font-medium text-orange-800 dark:text-orange-200">
                             Cached Data Available
                           </h4>
-                          <p className="text-xs text-blue-700 dark:text-blue-300 mt-1">
+                          <p className="text-xs text-orange-700 dark:text-orange-300 mt-1">
                             Past attacks will show the same data. Clear cache only when switching factions or if data seems outdated.
                           </p>
                         </div>

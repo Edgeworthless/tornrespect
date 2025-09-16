@@ -70,7 +70,7 @@ export default function MemberPerformanceTable({ memberStats }: Props) {
 
     return sortConfig.direction === 'desc' ? (
       <svg
-        className="size-4 text-blue-600 dark:text-blue-400"
+        className="size-4 text-orange-600 dark:text-orange-400"
         fill="none"
         stroke="currentColor"
         viewBox="0 0 24 24"
@@ -84,7 +84,7 @@ export default function MemberPerformanceTable({ memberStats }: Props) {
       </svg>
     ) : (
       <svg
-        className="size-4 text-blue-600 dark:text-blue-400"
+        className="size-4 text-orange-600 dark:text-orange-400"
         fill="none"
         stroke="currentColor"
         viewBox="0 0 24 24"
@@ -294,7 +294,7 @@ export default function MemberPerformanceTable({ memberStats }: Props) {
                   <div className="flex items-center">
                     <div className="mr-2 h-2 w-16 rounded-full bg-gray-200 dark:bg-gray-700">
                       <div
-                        className="h-2 rounded-full bg-blue-600 dark:bg-blue-400"
+                        className="h-2 rounded-full bg-orange-600 dark:bg-orange-400"
                         style={{
                           width: `${Math.min(stats.successRate, 100)}%`
                         }}

@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react'
+import React, { useMemo, useEffect } from 'react'
 import {
   BarChart,
   Bar,
@@ -22,7 +22,7 @@ interface ChartsProps {
 }
 
 const COLORS = [
-  '#3B82F6',
+  '#EA580C',
   '#EF4444',
   '#10B981',
   '#F59E0B',
@@ -30,7 +30,81 @@ const COLORS = [
   '#EC4899'
 ]
 
+// Custom tooltip component with dark mode support
+const CustomTooltip = ({ active, payload, label, formatter, labelFormatter }: any) => {
+  if (active && payload && payload.length) {
+    const displayLabel = labelFormatter ? labelFormatter(label) : label;
+    
+    return (
+      <div className="rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-3 shadow-lg">
+        {displayLabel && (
+          <p className="text-sm font-medium text-gray-900 dark:text-gray-100 mb-2">
+            {displayLabel}
+          </p>
+        )}
+        {payload.map((entry: any, index: number) => {
+          const [formattedValue, formattedName] = formatter 
+            ? formatter(entry.value, entry.name) 
+            : [entry.value, entry.name || entry.dataKey];
+          
+          return (
+            <p key={index} className="text-sm text-gray-700 dark:text-gray-300">
+              <span 
+                className="inline-block w-3 h-3 rounded mr-2" 
+                style={{ backgroundColor: entry.color }}
+              />
+              {formattedName ? `${formattedName}: ${formattedValue}` : formattedValue}
+            </p>
+          );
+        })}
+      </div>
+    );
+  }
+  return null;
+};
+
 export default function Charts({ memberStats, attacks }: ChartsProps) {
+  // Add custom CSS to override Recharts hover styles
+  useEffect(() => {
+    const style = document.createElement('style');
+    style.textContent = `
+      .recharts-bar-rectangle {
+        filter: none !important;
+      }
+      .recharts-bar-rectangle:hover {
+        filter: brightness(1.15) !important;
+        opacity: 1 !important;
+      }
+      .recharts-active-bar {
+        filter: brightness(1.15) !important;
+        opacity: 1 !important;
+      }
+      .recharts-bar-rectangle[fill]:hover {
+        filter: brightness(1.15) !important;
+      }
+      .recharts-bar {
+        filter: none !important;
+      }
+      .recharts-bar:hover {
+        filter: brightness(1.15) !important;
+      }
+      .recharts-tooltip-wrapper {
+        z-index: 1000 !important;
+      }
+      /* Remove any white/gray overlays */
+      .recharts-rectangle.recharts-bar-rectangle {
+        stroke: none !important;
+        stroke-width: 0 !important;
+      }
+    `;
+    document.head.appendChild(style);
+    
+    return () => {
+      if (document.head.contains(style)) {
+        document.head.removeChild(style);
+      }
+    };
+  }, []);
   const topPerformersData = useMemo(() => {
     return memberStats.slice(0, 10).map((stats) => ({
       name:
@@ -117,16 +191,25 @@ export default function Charts({ memberStats, attacks }: ChartsProps) {
               className="dark:text-white"
             />
             <Tooltip
-              formatter={(value, name) => [
-                typeof value === 'number' ? value.toLocaleString() : value,
-                name === 'respect'
-                  ? 'Total Respect'
-                  : name === 'attacks'
-                    ? 'Total Attacks'
-                    : 'Success Rate (%)'
-              ]}
+              content={<CustomTooltip 
+                formatter={(value: any, name: string) => [
+                  typeof value === 'number' ? value.toLocaleString() : value,
+                  name === 'respect'
+                    ? 'Total Respect'
+                    : name === 'attacks'
+                      ? 'Total Attacks'
+                      : 'Success Rate (%)'
+                ]}
+              />}
             />
-            <Bar dataKey="respect" fill="#3B82F6" />
+            <Bar 
+              dataKey="respect" 
+              fill="#EA580C"
+              style={{ 
+                filter: 'drop-shadow(0 0 0 transparent)',
+                transition: 'all 0.2s ease'
+              }}
+            />
           </BarChart>
         </ResponsiveContainer>
       </div>
@@ -149,7 +232,7 @@ export default function Charts({ memberStats, attacks }: ChartsProps) {
                 return `${name} (${percentage}%)`
               }}
               outerRadius={80}
-              fill="#8884d8"
+              fill="#EA580C"
               dataKey="value"
             >
               {attackDistributionData.map((entry, index) => (
@@ -160,7 +243,9 @@ export default function Charts({ memberStats, attacks }: ChartsProps) {
               ))}
             </Pie>
             <Tooltip
-              formatter={(value) => [value.toLocaleString(), 'Attacks']}
+              content={<CustomTooltip 
+                formatter={(value: any) => [value.toLocaleString(), 'Attacks']}
+              />}
             />
           </PieChart>
         </ResponsiveContainer>
@@ -187,16 +272,18 @@ export default function Charts({ memberStats, attacks }: ChartsProps) {
               className="dark:text-white"
             />
             <Tooltip
-              formatter={(value) => [
-                value.toLocaleString(),
-                'Cumulative Respect'
-              ]}
-              labelFormatter={(label) => `Date: ${label}`}
+              content={<CustomTooltip 
+                formatter={(value: any) => [
+                  value.toLocaleString(),
+                  'Cumulative Respect'
+                ]}
+                labelFormatter={(label: string) => `Date: ${label}`}
+              />}
             />
             <Line
               type="monotone"
               dataKey="respect"
-              stroke="#3B82F6"
+              stroke="#EA580C"
               strokeWidth={2}
               dot={false}
             />
@@ -223,7 +310,11 @@ export default function Charts({ memberStats, attacks }: ChartsProps) {
               tickFormatter={(value) => value.toLocaleString()}
               fontSize={12}
             />
-            <Tooltip formatter={(value) => [value.toLocaleString(), '']} />
+            <Tooltip
+              content={<CustomTooltip 
+                formatter={(value: any) => [value.toLocaleString(), '']}
+              />}
+            />
             <Bar
               dataKey="warRespect"
               stackId="a"
@@ -239,7 +330,7 @@ export default function Charts({ memberStats, attacks }: ChartsProps) {
             <Bar
               dataKey="regularRespect"
               stackId="a"
-              fill="#3B82F6"
+              fill="#EA580C"
               name="Regular Respect"
             />
           </BarChart>
@@ -254,7 +345,7 @@ export default function Charts({ memberStats, attacks }: ChartsProps) {
             <span>Chain</span>
           </div>
           <div className="flex items-center">
-            <div className="mr-2 size-3 rounded bg-blue-500"></div>
+            <div className="mr-2 size-3 rounded bg-orange-500"></div>
             <span>Regular</span>
           </div>
         </div>

@@ -353,7 +353,7 @@ export class DataProcessor {
 
     // Handle currentMembersOnly and formerMembersOnly filters
     if (currentMembers && (memberFilter.currentMembersOnly || memberFilter.formerMembersOnly)) {
-      const isCurrentMember = currentMembers.some(member => member.id === attack.attacker.id)
+      const isCurrentMember = currentMembers.some(member => member.id === attack.attacker?.id)
       
       if (memberFilter.currentMembersOnly && !isCurrentMember) {
         return false

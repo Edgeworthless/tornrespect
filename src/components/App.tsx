@@ -25,7 +25,7 @@ function Dashboard() {
         <div className="space-y-8">
           {state.isLoading ? (
             <div className="py-12 text-center">
-              <div className="inline-block size-8 animate-spin rounded-full border-b-2 border-blue-600"></div>
+              <div className="inline-block size-8 animate-spin rounded-full border-b-2 border-orange-600"></div>
               <p className="mt-2 text-gray-600">Loading faction data...</p>
             </div>
           ) : state.factionData ? (
@@ -60,7 +60,7 @@ function Dashboard() {
               </p>
               <div className="mx-auto max-w-lg space-y-4 text-left text-sm text-gray-500 dark:text-gray-400">
                 <div className="flex items-start">
-                  <div className="mr-3 mt-0.5 flex size-6 items-center justify-center rounded-full bg-blue-100 dark:bg-blue-900/50 text-xs font-medium text-blue-600 dark:text-blue-400">
+                  <div className="mr-3 mt-0.5 flex size-6 items-center justify-center rounded-full bg-orange-100 dark:bg-orange-900/50 text-xs font-medium text-orange-600 dark:text-orange-400">
                     1
                   </div>
                   <div>
@@ -74,7 +74,7 @@ function Dashboard() {
                   </div>
                 </div>
                 <div className="flex items-start">
-                  <div className="mr-3 mt-0.5 flex size-6 items-center justify-center rounded-full bg-blue-100 dark:bg-blue-900/50 text-xs font-medium text-blue-600 dark:text-blue-400">
+                  <div className="mr-3 mt-0.5 flex size-6 items-center justify-center rounded-full bg-orange-100 dark:bg-orange-900/50 text-xs font-medium text-orange-600 dark:text-orange-400">
                     2
                   </div>
                   <div>
@@ -86,7 +86,7 @@ function Dashboard() {
                   </div>
                 </div>
                 <div className="flex items-start">
-                  <div className="mr-3 mt-0.5 flex size-6 items-center justify-center rounded-full bg-blue-100 dark:bg-blue-900/50 text-xs font-medium text-blue-600 dark:text-blue-400">
+                  <div className="mr-3 mt-0.5 flex size-6 items-center justify-center rounded-full bg-orange-100 dark:bg-orange-900/50 text-xs font-medium text-orange-600 dark:text-orange-400">
                     3
                   </div>
                   <div>

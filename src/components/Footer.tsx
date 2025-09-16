@@ -30,7 +30,7 @@ export default function Footer() {
             href="https://www.torn.com/profiles.php?XID=3747263"
             target="_blank"
             rel="noopener noreferrer"
-            className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300"
+            className="text-orange-600 hover:text-orange-800 dark:text-orange-400 dark:hover:text-orange-300"
           >
             Manuel [3747263]
           </a>

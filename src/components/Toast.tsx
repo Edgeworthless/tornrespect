@@ -37,7 +37,7 @@ export default function Toast({ type, title, message, progress, duration = 2500,
   const getIcon = () => {
     switch (type) {
       case 'loading':
-        return <ArrowPathIcon className="h-5 w-5 animate-spin text-blue-500" />
+        return <ArrowPathIcon className="h-5 w-5 animate-spin text-orange-500" />
       case 'success':
         return <CheckCircleIcon className="h-5 w-5 text-green-500" />
       case 'error':
@@ -48,24 +48,12 @@ export default function Toast({ type, title, message, progress, duration = 2500,
   const getColors = () => {
     switch (type) {
       case 'loading':
-        return 'border-blue-200 dark:border-blue-800 bg-blue-50 dark:bg-blue-900/50'
+        return 'border-orange-200 dark:border-orange-800 bg-orange-50 dark:bg-orange-900/50'
       case 'success':
         return 'border-green-200 dark:border-green-800 bg-green-50 dark:bg-green-900/50'
       case 'error':
         return 'border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-900/50'
     }
-  }
-
-  const getProgressText = () => {
-    if (!progress) return null
-    
-    const { current, total } = progress
-    return (
-      <div className="text-xs text-gray-600 dark:text-gray-400 mt-1">
-        {current.toLocaleString()} attacks processed
-        {total ? ` / ${total.toLocaleString()}` : ' (fetching in batches...)'}
-      </div>
-    )
   }
 
   const getProgressBar = () => {
@@ -75,10 +63,10 @@ export default function Toast({ type, title, message, progress, duration = 2500,
     const percentage = total ? (current / total) * 100 : 50
     
     return (
-      <div className="mt-2 h-1.5 w-full rounded-full bg-blue-200 dark:bg-blue-800">
+      <div className="mt-2 h-1.5 w-full rounded-full bg-orange-200 dark:bg-orange-800">
         <div
           className={`h-1.5 rounded-full transition-all duration-300 ${
-            total ? 'bg-blue-600 dark:bg-blue-400' : 'bg-blue-600 dark:bg-blue-400 animate-pulse'
+            total ? 'bg-orange-600 dark:bg-orange-400' : 'bg-orange-600 dark:bg-orange-400 animate-pulse'
           }`}
           style={{ width: `${percentage}%` }}
         />
@@ -113,7 +101,6 @@ export default function Toast({ type, title, message, progress, duration = 2500,
                     {message}
                   </p>
                 )}
-                {getProgressText()}
                 {getProgressBar()}
               </div>
               {type !== 'loading' && (
