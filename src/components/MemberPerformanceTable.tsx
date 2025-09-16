@@ -158,15 +158,6 @@ export default function MemberPerformanceTable({ memberStats }: Props) {
                 </div>
               </th>
               <th
-                onClick={() => handleSort('isCurrentMember')}
-                className="cursor-pointer select-none px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800"
-              >
-                <div className="flex items-center space-x-1">
-                  <span>Status</span>
-                  <SortIcon column="isCurrentMember" />
-                </div>
-              </th>
-              <th
                 onClick={() => handleSort('totalAttacks')}
                 className="cursor-pointer select-none px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800"
               >
@@ -198,7 +189,7 @@ export default function MemberPerformanceTable({ memberStats }: Props) {
                 className="cursor-pointer select-none px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800"
               >
                 <div className="flex items-center space-x-1">
-                  <span>Avg/Attack</span>
+                  <span>Avg</span>
                   <SortIcon column="averageRespectPerAttack" />
                 </div>
               </th>
@@ -261,28 +252,22 @@ export default function MemberPerformanceTable({ memberStats }: Props) {
                       <div className="text-sm font-medium text-gray-900 dark:text-gray-100">
                         {stats.name}
                       </div>
-                      <div className="text-sm text-gray-500 dark:text-gray-400">
-                        Level {stats.level}
-                        {stats.position && ` • ${stats.position}`}
+                      <div className="text-sm">
+                        <span className="text-gray-500 dark:text-gray-400">Level {stats.level}</span>
+                        {stats.isCurrentMember ? (
+                          stats.position && (
+                            <span className="ml-1 text-orange-600 dark:text-orange-400 font-medium">
+                              • {stats.position}
+                            </span>
+                          )
+                        ) : (
+                          <span className="ml-1 text-gray-400 dark:text-gray-500">
+                            • Former
+                          </span>
+                        )}
                       </div>
                     </div>
                   </div>
-                </td>
-                <td className="whitespace-nowrap px-6 py-4">
-                  <span
-                    className={`inline-flex rounded-full px-2 py-1 text-xs font-semibold ${
-                      stats.isCurrentMember
-                        ? 'bg-green-100 dark:bg-green-900/50 text-green-800 dark:text-green-200'
-                        : 'bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-300'
-                    }`}
-                  >
-                    {stats.isCurrentMember ? 'Current' : 'Former'}
-                  </span>
-                  {stats.daysInFaction && (
-                    <div className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                      {stats.daysInFaction} days
-                    </div>
-                  )}
                 </td>
                 <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-900 dark:text-gray-100">
                   <div>{formatNumber(stats.totalAttacks)}</div>
