@@ -1,5 +1,6 @@
 import { useEffect } from 'react'
 import { AppProvider, useApp } from '../contexts/AppContext'
+import { ToastProvider } from './ToastContainer'
 import Header from './Header'
 import FilterPanel from './FilterPanel'
 import MemberPerformanceTable from './MemberPerformanceTable'
@@ -12,13 +13,13 @@ function Dashboard() {
   const { state } = useApp()
 
   const filteredAttacks = state.factionData
-    ? DataProcessor.filterAttacks(state.factionData.attacks, state.filters)
+    ? DataProcessor.filterAttacks(state.factionData.attacks, state.filters, state.factionData.currentMembers)
     : []
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors">
       <Header />
-      <FilterPanel />
+      {state.apiKey && <FilterPanel />}
 
       <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
         <div className="space-y-8">
@@ -38,7 +39,7 @@ function Dashboard() {
           ) : (
             <div className="py-12 text-center">
               <svg
-                className="mx-auto mb-4 size-16 text-gray-400"
+                className="mx-auto mb-4 size-16 text-gray-400 dark:text-gray-500"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -50,20 +51,20 @@ function Dashboard() {
                   d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
                 />
               </svg>
-              <h3 className="mb-2 text-lg font-medium text-gray-900">
+              <h3 className="mb-2 text-lg font-medium text-gray-900 dark:text-gray-100">
                 Welcome to Torn Faction Respect Tracker
               </h3>
-              <p className="mx-auto mb-6 max-w-md text-gray-600">
+              <p className="mx-auto mb-6 max-w-md text-gray-600 dark:text-gray-300">
                 Configure your Torn API key and sync faction data to start
                 analyzing member performance and respect contributions.
               </p>
-              <div className="mx-auto max-w-lg space-y-4 text-left text-sm text-gray-500">
+              <div className="mx-auto max-w-lg space-y-4 text-left text-sm text-gray-500 dark:text-gray-400">
                 <div className="flex items-start">
-                  <div className="mr-3 mt-0.5 flex size-6 items-center justify-center rounded-full bg-blue-100 text-xs font-medium text-blue-600">
+                  <div className="mr-3 mt-0.5 flex size-6 items-center justify-center rounded-full bg-blue-100 dark:bg-blue-900/50 text-xs font-medium text-blue-600 dark:text-blue-400">
                     1
                   </div>
                   <div>
-                    <p className="font-medium text-gray-700">
+                    <p className="font-medium text-gray-700 dark:text-gray-300">
                       Configure API Key
                     </p>
                     <p>
@@ -73,11 +74,11 @@ function Dashboard() {
                   </div>
                 </div>
                 <div className="flex items-start">
-                  <div className="mr-3 mt-0.5 flex size-6 items-center justify-center rounded-full bg-blue-100 text-xs font-medium text-blue-600">
+                  <div className="mr-3 mt-0.5 flex size-6 items-center justify-center rounded-full bg-blue-100 dark:bg-blue-900/50 text-xs font-medium text-blue-600 dark:text-blue-400">
                     2
                   </div>
                   <div>
-                    <p className="font-medium text-gray-700">Sync Data</p>
+                    <p className="font-medium text-gray-700 dark:text-gray-300">Sync Data</p>
                     <p>
                       Click &quot;Sync Data&quot; to fetch faction attack data
                       and member information
@@ -85,11 +86,11 @@ function Dashboard() {
                   </div>
                 </div>
                 <div className="flex items-start">
-                  <div className="mr-3 mt-0.5 flex size-6 items-center justify-center rounded-full bg-blue-100 text-xs font-medium text-blue-600">
+                  <div className="mr-3 mt-0.5 flex size-6 items-center justify-center rounded-full bg-blue-100 dark:bg-blue-900/50 text-xs font-medium text-blue-600 dark:text-blue-400">
                     3
                   </div>
                   <div>
-                    <p className="font-medium text-gray-700">
+                    <p className="font-medium text-gray-700 dark:text-gray-300">
                       Analyze Performance
                     </p>
                     <p>
@@ -115,9 +116,11 @@ function App() {
   }, [])
 
   return (
-    <AppProvider>
-      <Dashboard />
-    </AppProvider>
+    <ToastProvider>
+      <AppProvider>
+        <Dashboard />
+      </AppProvider>
+    </ToastProvider>
   )
 }
 

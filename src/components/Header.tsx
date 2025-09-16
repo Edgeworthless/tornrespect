@@ -42,10 +42,6 @@ export default function Header() {
   const [apiKeyInput, setApiKeyInput] = useState(state.apiKey || '')
   const [showApiKeyModal, setShowApiKeyModal] = useState(!state.apiKey)
   const [isLoadingData, setIsLoadingData] = useState(false)
-  const [loadingProgress, setLoadingProgress] = useState<{
-    current: number
-    total?: number
-  } | null>(null)
   const [currentTheme, setCurrentTheme] = useState(() => getStoredTheme())
 
   // Close dropdown when clicking outside
@@ -96,14 +92,8 @@ export default function Header() {
 
   const handleLoadData = async () => {
     setIsLoadingData(true)
-    setLoadingProgress(null)
-
-    await loadFactionData((current, total) => {
-      setLoadingProgress({ current, total })
-    })
-
+    await loadFactionData()
     setIsLoadingData(false)
-    setLoadingProgress(null)
   }
 
   const handleThemeToggle = () => {
@@ -118,44 +108,76 @@ export default function Header() {
 
   return (
     <>
-      <header className="border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-sm">
+      <header className="pt-4 sm:pt-0 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-sm">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="flex h-16 items-center justify-between">
-            <div className="flex items-center">
-              <h1 className="text-xl font-semibold text-gray-900 dark:text-gray-100">
-                Torn Faction Respect Tracker
+          <div className="flex min-h-16 flex-col sm:flex-row sm:h-16 sm:items-center sm:justify-between">
+            <div className="flex items-center justify-between sm:justify-start">
+              <h1 className="text-lg sm:text-xl font-semibold text-gray-900 dark:text-gray-100">
+                <span className="sm:hidden">Torn Respect</span>
+                <span className="hidden sm:inline">Torn Faction Respect Tracker</span>
               </h1>
-              {quickStats && (
-                <div className="ml-8 flex items-center space-x-6 text-sm text-gray-600 dark:text-gray-400">
-                  <div>
-                    <span className="font-medium">
-                      {quickStats.totalRespect.toLocaleString()}
-                    </span>
-                    <span className="ml-1">Total Respect</span>
-                  </div>
-                  <div>
-                    <span className="font-medium">
-                      {quickStats.totalAttacks.toLocaleString()}
-                    </span>
-                    <span className="ml-1">Total Attacks</span>
-                  </div>
-                  <div>
-                    <span className="font-medium">
-                      {quickStats.averageSuccessRate.toFixed(1)}%
-                    </span>
-                    <span className="ml-1">Success Rate</span>
-                  </div>
-                </div>
-              )}
+              <div className="flex items-center space-x-2 sm:hidden">
+                <button
+                  onClick={handleLoadData}
+                  disabled={!state.apiClient || isLoadingData}
+                  className="inline-flex items-center gap-1 rounded-lg bg-blue-600 px-3 py-1.5 text-xs font-medium text-white shadow-sm transition-colors hover:bg-blue-700 disabled:bg-gray-400"
+                  title="Sync faction data"
+                >
+                  <ArrowPathIcon className={`h-3 w-3 ${isLoadingData ? 'animate-spin' : ''}`} />
+                  {isLoadingData ? 'Syncing...' : 'Sync'}
+                </button>
+                {state.factionData && (
+                  <button
+                    onClick={() => exportData('csv')}
+                    className="inline-flex items-center gap-1 rounded-lg bg-green-600 px-3 py-1.5 text-xs font-medium text-white shadow-sm transition-colors hover:bg-green-700"
+                    title="Export CSV"
+                  >
+                    <ArrowDownTrayIcon className="h-3 w-3" />
+                    CSV
+                  </button>
+                )}
+                <button
+                  onClick={() => setShowApiKeyModal(true)}
+                  className="rounded-lg p-1.5 text-gray-500 dark:text-gray-400 transition-colors hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-700 dark:hover:text-gray-300"
+                  title="Settings"
+                >
+                  <Cog6ToothIcon className="h-4 w-4" />
+                </button>
+              </div>
             </div>
+            
+            {quickStats && (
+              <div className="mt-2 sm:mt-0 sm:ml-8 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs sm:text-sm text-gray-600 dark:text-gray-400">
+                <div>
+                  <span className="font-medium">
+                    {quickStats.totalRespect.toLocaleString()}
+                  </span>
+                  <span className="ml-1 hidden sm:inline">Total Respect</span>
+                  <span className="ml-1 sm:hidden">Respect</span>
+                </div>
+                <div>
+                  <span className="font-medium">
+                    {quickStats.totalAttacks.toLocaleString()}
+                  </span>
+                  <span className="ml-1 hidden sm:inline">Total Attacks</span>
+                  <span className="ml-1 sm:hidden">Attacks</span>
+                </div>
+                <div>
+                  <span className="font-medium">
+                    {quickStats.averageSuccessRate.toFixed(1)}%
+                  </span>
+                  <span className="ml-1 hidden sm:inline">Success Rate</span>
+                  <span className="ml-1 sm:hidden">Success</span>
+                </div>
+              </div>
+            )}
 
-            <div className="flex items-center space-x-4">
+            <div className="hidden sm:flex items-center space-x-4">
               {state.lastSync && (
                 <span className="text-sm text-gray-500 dark:text-gray-400">
                   Last sync: {getRelativeTime(state.lastSync)}
                 </span>
               )}
-
 
               <button
                 onClick={handleLoadData}
@@ -167,7 +189,7 @@ export default function Header() {
                 {isLoadingData ? 'Syncing...' : 'Sync'}
               </button>
 
-              {/* Export Dropdown */}
+              {/* Export Dropdown - Desktop only */}
               <div className="relative">
                 <button
                   onClick={() => {
@@ -223,27 +245,27 @@ export default function Header() {
           </div>
         </div>
 
-        {loadingProgress && (
+        {state.loadingProgress && (
           <div className="border-t border-blue-200 dark:border-blue-800 bg-blue-50 dark:bg-blue-900/50 px-4 py-3">
             <div className="mx-auto max-w-7xl">
               <div className="flex items-center justify-between">
                 <span className="text-sm text-blue-700 dark:text-blue-300">
                   Loading faction data...{' '}
-                  {loadingProgress.current.toLocaleString()} attacks processed
-                  {loadingProgress.total 
-                    ? ` / ${loadingProgress.total.toLocaleString()}`
+                  {state.loadingProgress.current.toLocaleString()} attacks processed
+                  {state.loadingProgress.total 
+                    ? ` / ${state.loadingProgress.total.toLocaleString()}`
                     : ' (fetching in batches...)'
                   }
                 </span>
                 <div className="h-2 w-64 rounded-full bg-blue-200 dark:bg-blue-800">
                   <div
                     className={`h-2 rounded-full transition-all duration-300 ${
-                      loadingProgress.total ? 'bg-blue-600 dark:bg-blue-400' : 'bg-blue-600 dark:bg-blue-400 animate-pulse'
+                      state.loadingProgress.total ? 'bg-blue-600 dark:bg-blue-400' : 'bg-blue-600 dark:bg-blue-400 animate-pulse'
                     }`}
                     style={{
-                      width: loadingProgress.total
+                      width: state.loadingProgress.total
                         ? `${
-                            (loadingProgress.current / loadingProgress.total) *
+                            (state.loadingProgress.current / state.loadingProgress.total) *
                             100
                           }%`
                         : '50%'

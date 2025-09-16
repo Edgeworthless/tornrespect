@@ -14,7 +14,9 @@ export default function Footer() {
       <div className="mx-auto max-w-7xl px-6 py-12 md:flex md:items-center md:justify-between lg:px-8">
         <div className="flex justify-center md:order-2">
           <a
-            href="#"
+            href="https://github.com/Edgeworthless/tornrespect"
+            target="_blank"
+            rel="noopener noreferrer"
             className="text-gray-600 hover:text-gray-800 dark:text-gray-400 dark:hover:text-white"
             title="View source code on GitHub"
           >

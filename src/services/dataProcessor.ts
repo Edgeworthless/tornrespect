@@ -235,12 +235,13 @@ export class DataProcessor {
 
   static filterAttacks(
     attacks: ProcessedAttack[],
-    filters: FilterState
+    filters: FilterState,
+    currentMembers?: FactionMember[]
   ): ProcessedAttack[] {
     return attacks.filter((attack) => {
       if (!this.passesTimeFilter(attack, filters.time)) return false
       if (!this.passesAttackFilter(attack, filters.attacks)) return false
-      if (!this.passesMemberFilter(attack, filters.members)) return false
+      if (!this.passesMemberFilter(attack, filters.members, currentMembers)) return false
       return true
     })
   }
@@ -333,7 +334,8 @@ export class DataProcessor {
 
   private static passesMemberFilter(
     attack: ProcessedAttack,
-    memberFilter: FilterState['members']
+    memberFilter: FilterState['members'],
+    currentMembers?: FactionMember[]
   ): boolean {
     // Skip attacks with null attackers
     if (!attack.attacker) return false
@@ -347,6 +349,19 @@ export class DataProcessor {
     if (memberFilter.searchQuery) {
       const query = memberFilter.searchQuery.toLowerCase()
       if (!attack.attacker.name.toLowerCase().includes(query)) return false
+    }
+
+    // Handle currentMembersOnly and formerMembersOnly filters
+    if (currentMembers && (memberFilter.currentMembersOnly || memberFilter.formerMembersOnly)) {
+      const isCurrentMember = currentMembers.some(member => member.id === attack.attacker.id)
+      
+      if (memberFilter.currentMembersOnly && !isCurrentMember) {
+        return false
+      }
+      
+      if (memberFilter.formerMembersOnly && isCurrentMember) {
+        return false
+      }
     }
 
     return true

@@ -4,15 +4,26 @@ import { TimeFilter, MemberFilter, AttackFilter, saveTimeFilter } from '../types
 import { AttackType, AttackResult } from '../types/api'
 
 export default function FilterPanel() {
-  const { state, updateFilters } = useApp()
+  const { state, updateFilters, syncIncrementalData } = useApp()
   const [isExpanded, setIsExpanded] = useState(false)
 
   const handleTimeFilterChange = (timeFilter: Partial<TimeFilter>) => {
     const newTimeFilter = { ...state.filters.time, ...timeFilter }
-    updateFilters({
-      ...state.filters,
-      time: newTimeFilter
-    })
+    
+    // If we have cached data and API client, use intelligent sync
+    if (state.factionData && state.apiClient) {
+      syncIncrementalData(newTimeFilter, (current, total) => {
+        // Progress callback is handled inside the context
+        // The Header component will automatically show the loading bar
+      })
+    } else {
+      // Fallback to regular filter update
+      updateFilters({
+        ...state.filters,
+        time: newTimeFilter
+      })
+    }
+    
     // Save to localStorage
     saveTimeFilter(newTimeFilter)
   }
@@ -32,13 +43,13 @@ export default function FilterPanel() {
   }
 
   const presetButtons = [
-    { key: '1h', label: '1 Hour' },
-    { key: '6h', label: '6 Hours' },
-    { key: '24h', label: '24 Hours' },
-    { key: '7d', label: '7 Days' },
-    { key: '30d', label: '30 Days' },
-    { key: 'all', label: 'All Time' },
-    { key: 'custom', label: 'Custom' }
+    { key: '1h', label: '1 Hour', shortLabel: '1h' },
+    { key: '6h', label: '6 Hours', shortLabel: '6h' },
+    { key: '24h', label: '24 Hours', shortLabel: '24h' },
+    { key: '7d', label: '7 Days', shortLabel: '7d' },
+    { key: '30d', label: '30 Days', shortLabel: '30d' },
+    { key: 'all', label: 'All Time', shortLabel: 'All' },
+    { key: 'custom', label: 'Custom', shortLabel: 'Custom' }
   ] as const
 
   const attackTypes: { key: AttackType; label: string }[] = [
@@ -63,21 +74,23 @@ export default function FilterPanel() {
     <div className="border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="space-y-4 py-4">
-          {/* Filters title with inline time range buttons */}
-          <div className="flex flex-col space-y-3 sm:flex-row sm:items-center sm:justify-between sm:space-y-0">
-            <div className="flex items-center space-x-4">
-              <h2 className="text-lg font-medium text-gray-900 dark:text-gray-100">Filters</h2>
-              
-              {/* Time Range Buttons - Inline */}
-              <div className="flex items-center space-x-2">
-                {presetButtons.map((preset) => (
-                  <button
-                    key={preset.key}
-                    onClick={() =>
-                      handleTimeFilterChange({ preset: preset.key })
-                    }
-                    className={`rounded-md px-2.5 py-1.5 text-xs font-medium transition-colors ${
-                      state.filters.time.preset === preset.key
+          {/* Filters title and time range buttons */}
+          <div className="flex flex-col space-y-3">
+            <h2 className="text-lg font-medium text-gray-900 dark:text-gray-100">Filters</h2>
+            
+            {/* Time Range Buttons - Responsive */}
+            <div className="flex flex-wrap items-center gap-2">
+              {presetButtons.map((preset) => (
+                <button
+                  key={preset.key}
+                  onClick={() =>
+                    handleTimeFilterChange({ preset: preset.key })
+                  }
+                  disabled={state.isLoading}
+                  className={`rounded-md px-2.5 py-1.5 text-xs font-medium transition-colors ${
+                      state.isLoading 
+                        ? 'bg-gray-200 dark:bg-gray-700 text-gray-400 dark:text-gray-600 cursor-not-allowed'
+                        : state.filters.time.preset === preset.key
                         ? preset.key === 'all'
                           ? 'bg-orange-600 dark:bg-orange-500 text-white'
                           : 'bg-blue-600 dark:bg-blue-500 text-white'
@@ -86,15 +99,22 @@ export default function FilterPanel() {
                           : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
                     }`}
                   >
-                    {preset.label}
+                    <span className="hidden sm:inline">{preset.label}</span>
+                    <span className="sm:hidden">{preset.shortLabel}</span>
                   </button>
                 ))}
               </div>
             </div>
 
-            <button
+            <div>
+              <button
               onClick={() => setIsExpanded(!isExpanded)}
-              className="flex items-center text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100"
+              disabled={state.isLoading}
+              className={`flex items-center text-sm transition-colors ${
+                state.isLoading
+                  ? 'text-gray-400 dark:text-gray-600 cursor-not-allowed'
+                  : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100'
+              }`}
             >
               {isExpanded ? 'Hide More Filters' : 'More Filters'}
               <svg
@@ -155,7 +175,12 @@ export default function FilterPanel() {
                           : undefined
                       })
                     }
-                    className="mt-1 block w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    disabled={state.isLoading}
+                    className={`mt-1 block w-full rounded-md border px-3 py-2 text-sm focus:outline-none focus:ring-2 ${
+                      state.isLoading
+                        ? 'border-gray-200 dark:border-gray-700 bg-gray-100 dark:bg-gray-800 text-gray-400 dark:text-gray-600 cursor-not-allowed'
+                        : 'border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-blue-500'
+                    }`}
                   />
                 </div>
                 <div>
@@ -175,7 +200,12 @@ export default function FilterPanel() {
                           : undefined
                       })
                     }
-                    className="mt-1 block w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    disabled={state.isLoading}
+                    className={`mt-1 block w-full rounded-md border px-3 py-2 text-sm focus:outline-none focus:ring-2 ${
+                      state.isLoading
+                        ? 'border-gray-200 dark:border-gray-700 bg-gray-100 dark:bg-gray-800 text-gray-400 dark:text-gray-600 cursor-not-allowed'
+                        : 'border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-blue-500'
+                    }`}
                   />
                 </div>
               </div>

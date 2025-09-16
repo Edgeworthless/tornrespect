@@ -183,6 +183,8 @@ export class TornAPIClient {
     let hasMoreData = true
     let batchCount = 0
     let nextCursor: string | undefined
+    let previousCursor: string | undefined
+    let consecutiveSmallBatches = 0
 
     // For "All Time", we don't set any timestamp limits
     const isAllTime = !fromTimestamp && !toTimestamp
@@ -219,6 +221,24 @@ export class TornAPIClient {
       console.log('Metadata links:', batch._metadata?.links)
       console.log('Next cursor to use:', nextCursor)
       
+      // Detect infinite loops: same cursor or very small batches repeating
+      if (nextCursor === previousCursor) {
+        console.log('Detected same cursor as previous batch, stopping to prevent infinite loop')
+        hasMoreData = false
+        break
+      }
+      
+      if (batch.attacks.length <= 5) {
+        consecutiveSmallBatches++
+        if (consecutiveSmallBatches >= 3) {
+          console.log('Detected 3+ consecutive small batches, likely at end of data')
+          hasMoreData = false
+          break
+        }
+      } else {
+        consecutiveSmallBatches = 0
+      }
+      
       if (!nextCursor) {
         // No more pages available
         hasMoreData = false
@@ -235,6 +255,7 @@ export class TornAPIClient {
       }
 
       batchCount++
+      previousCursor = nextCursor
 
       // Safety check: if we're fetching all time and have a lot of data, give user a chance to see progress
       if (isAllTime && batchCount % 10 === 0) {

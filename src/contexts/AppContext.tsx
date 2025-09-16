@@ -9,6 +9,7 @@ import { FactionData, MemberStats } from '../types/api'
 import { FilterState, DEFAULT_FILTER_STATE } from '../types/filters'
 import { TornAPIClient, TornAPIError } from '../services/api'
 import { DataProcessor } from '../services/dataProcessor'
+import { useToast } from '../components/ToastContainer'
 
 interface CachedFactionData {
   data: FactionData
@@ -20,6 +21,7 @@ interface AppState {
   apiKey: string | null
   apiClient: TornAPIClient | null
   isLoading: boolean
+  loadingProgress: { current: number; total?: number } | null
   error: string | null
   factionData: FactionData | null
   filteredStats: MemberStats[]
@@ -31,11 +33,12 @@ interface AppState {
 type AppAction =
   | { type: 'SET_API_KEY'; payload: string }
   | { type: 'SET_LOADING'; payload: boolean }
+  | { type: 'SET_LOADING_PROGRESS'; payload: { current: number; total?: number } | null }
   | { type: 'SET_ERROR'; payload: string | null }
-  | { type: 'SET_FACTION_DATA'; payload: FactionData }
+  | { type: 'SET_FACTION_DATA'; payload: FactionData | null }
   | { type: 'SET_FILTERS'; payload: FilterState }
   | { type: 'SET_FILTERED_STATS'; payload: MemberStats[] }
-  | { type: 'SET_LAST_SYNC'; payload: Date }
+  | { type: 'SET_LAST_SYNC'; payload: Date | null }
   | { type: 'LOAD_CACHED_DATA'; payload: CachedFactionData }
   | { type: 'SET_HAS_CACHED_DATA'; payload: boolean }
   | { type: 'CLEAR_DATA' }
@@ -44,6 +47,10 @@ interface AppContextType {
   state: AppState
   setApiKey: (key: string) => void
   loadFactionData: (
+    onProgress?: (current: number, total?: number) => void
+  ) => Promise<void>
+  syncIncrementalData: (
+    newTimeFilter: FilterState['time'],
     onProgress?: (current: number, total?: number) => void
   ) => Promise<void>
   clearCache: () => void
@@ -58,6 +65,7 @@ const initialState: AppState = {
   apiKey: localStorage.getItem('tornApiKey'),
   apiClient: null,
   isLoading: false,
+  loadingProgress: null,
   error: null,
   factionData: null,
   filteredStats: [],
@@ -116,7 +124,14 @@ function appReducer(state: AppState, action: AppAction): AppState {
     case 'SET_LOADING':
       return {
         ...state,
-        isLoading: action.payload
+        isLoading: action.payload,
+        loadingProgress: action.payload ? state.loadingProgress : null
+      }
+
+    case 'SET_LOADING_PROGRESS':
+      return {
+        ...state,
+        loadingProgress: action.payload
       }
 
     case 'SET_ERROR':
@@ -183,6 +198,7 @@ function appReducer(state: AppState, action: AppAction): AppState {
 const AppContext = createContext<AppContextType | undefined>(undefined)
 
 export function AppProvider({ children }: { children: React.ReactNode }) {
+  const { showToast, updateToast, hideToast } = useToast()
   const [state, dispatch] = useReducer(appReducer, {
     ...initialState,
     apiClient: initialState.apiKey
@@ -221,6 +237,9 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const clearCache = useCallback(() => {
     clearCachedData()
     dispatch({ type: 'SET_HAS_CACHED_DATA', payload: false })
+    dispatch({ type: 'SET_FACTION_DATA', payload: null })
+    dispatch({ type: 'SET_FILTERED_STATS', payload: [] })
+    dispatch({ type: 'SET_LAST_SYNC', payload: null })
   }, [])
 
   const loadFactionData = useCallback(
@@ -232,6 +251,12 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
       dispatch({ type: 'SET_LOADING', payload: true })
       dispatch({ type: 'SET_ERROR', payload: null })
+      
+      const toastId = showToast({
+        type: 'loading',
+        title: 'Syncing faction data...',
+        message: 'Fetching attack data and member information'
+      })
 
       try {
         const timeFilter = state.filters.time
@@ -265,7 +290,12 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
           await state.apiClient.fetchAllAttacks(
             fromTimestamp,
             toTimestamp,
-            onProgress
+            (current, total) => {
+              updateToast(toastId, {
+                progress: { current, total }
+              })
+              onProgress?.(current, total)
+            }
           )
 
         const { processedAttacks, memberStats } = DataProcessor.processAttacks(
@@ -298,6 +328,15 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
           currentMembers
         )
         dispatch({ type: 'SET_FILTERED_STATS', payload: filteredStats })
+        
+        // Show success toast and hide loading toast
+        hideToast(toastId)
+        showToast({
+          type: 'success',
+          title: 'Sync completed',
+          message: `Processed ${attacks.length.toLocaleString()} attacks`,
+          duration: 3000
+        })
       } catch (error) {
         console.error('Failed to load faction data:', error)
         let errorMessage = 'Failed to load faction data'
@@ -308,10 +347,207 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
           errorMessage = error.message
         }
 
+        // Show error toast and hide loading toast
+        hideToast(toastId)
+        showToast({
+          type: 'error',
+          title: 'Sync failed',
+          message: errorMessage,
+          duration: 5000
+        })
+        
         dispatch({ type: 'SET_ERROR', payload: errorMessage })
       }
     },
-    [state.apiClient, state.filters]
+    [state.apiClient, state.filters, showToast, updateToast, hideToast]
+  )
+
+  const syncIncrementalData = useCallback(
+    async (
+      newTimeFilter: FilterState['time'],
+      onProgress?: (current: number, total?: number) => void
+    ) => {
+      if (!state.apiClient || !state.factionData) {
+        // If no cached data, fall back to full sync
+        const newFilters = { ...state.filters, time: newTimeFilter }
+        dispatch({ type: 'SET_FILTERS', payload: newFilters })
+        return loadFactionData(onProgress)
+      }
+
+      dispatch({ type: 'SET_LOADING', payload: true })
+      dispatch({ type: 'SET_ERROR', payload: null })
+      
+      let updatedFactionData: FactionData | null = null
+      
+      const toastId = showToast({
+        type: 'loading',
+        title: 'Updating data range...',
+        message: 'Fetching additional attack data'
+      })
+
+      try {
+        // Calculate what time range we need to fetch
+        let fromTimestamp: number | undefined
+        let toTimestamp: number | undefined
+        let needsFetch = false
+
+        // Determine the new time range needed
+        if (newTimeFilter.preset === 'custom') {
+          fromTimestamp = newTimeFilter.from
+            ? Math.floor(newTimeFilter.from.getTime() / 1000)
+            : undefined
+          toTimestamp = newTimeFilter.to
+            ? Math.floor(newTimeFilter.to.getTime() / 1000)
+            : undefined
+          needsFetch = true
+        } else if (newTimeFilter.preset !== '30d' && newTimeFilter.preset !== 'all') {
+          const timeRanges = {
+            '1h': 3600,
+            '6h': 21600,
+            '24h': 86400,
+            '7d': 604800
+          }
+          const range = timeRanges[newTimeFilter.preset as keyof typeof timeRanges]
+          if (range) {
+            fromTimestamp = Math.floor(Date.now() / 1000) - range
+            needsFetch = true
+          }
+        } else if (newTimeFilter.preset === '30d') {
+          fromTimestamp = Math.floor(Date.now() / 1000) - 2592000 // 30 days
+          needsFetch = true
+        } else {
+          // 'all' preset - check if we have all data or need more
+          needsFetch = true
+        }
+
+        // Check if we need to fetch new data beyond what we have cached
+        const cachedAttacks = state.factionData.attacks
+        const oldestCached = cachedAttacks.length > 0 
+          ? Math.min(...cachedAttacks.map(a => a.started))
+          : Math.floor(Date.now() / 1000)
+        const newestCached = cachedAttacks.length > 0 
+          ? Math.max(...cachedAttacks.map(a => a.started))
+          : 0
+
+        // Determine if we need to fetch additional data
+        const needsOlderData = fromTimestamp && fromTimestamp < oldestCached
+        const needsNewerData = !toTimestamp || (toTimestamp > newestCached && 
+          (Date.now() / 1000 - newestCached) > 300) // Only fetch if more than 5 minutes old
+
+        if (needsFetch && (needsOlderData || needsNewerData)) {
+          // Fetch only the missing data ranges
+          let newAttacks: any[] = []
+          
+          if (needsOlderData && fromTimestamp) {
+            // Fetch older data
+            const { attacks: olderAttacks } = await state.apiClient.fetchAllAttacks(
+              fromTimestamp,
+              oldestCached - 1,
+              (current, total) => {
+                updateToast(toastId, {
+                  progress: { current, total }
+                })
+                onProgress?.(current, total)
+              }
+            )
+            newAttacks.push(...olderAttacks)
+          }
+
+          if (needsNewerData) {
+            // Fetch newer data
+            const { attacks: newerAttacks } = await state.apiClient.fetchAllAttacks(
+              newestCached + 1,
+              toTimestamp,
+              (current, total) => {
+                updateToast(toastId, {
+                  progress: { current, total }
+                })
+                onProgress?.(current, total)
+              }
+            )
+            newAttacks.push(...newerAttacks)
+          }
+
+          // Merge new attacks with cached data
+          if (newAttacks.length > 0) {
+            const mergedAttacks = [...cachedAttacks, ...newAttacks]
+              .sort((a, b) => b.started - a.started) // Sort by newest first
+              .filter((attack, index, arr) => 
+                // Remove duplicates based on attack ID
+                arr.findIndex(a => a.code === attack.code) === index
+              )
+
+            // Update faction data with merged attacks
+            const { processedAttacks, memberStats } = DataProcessor.processAttacks(
+              mergedAttacks,
+              state.factionData.currentMembers
+            )
+
+            updatedFactionData = {
+              ...state.factionData,
+              attacks: processedAttacks,
+              memberStats
+            }
+
+            dispatch({ type: 'SET_FACTION_DATA', payload: updatedFactionData })
+            
+            const syncTime = new Date()
+            dispatch({ type: 'SET_LAST_SYNC', payload: syncTime })
+            
+            // Update cache
+            if (state.apiKey) {
+              setCachedData(updatedFactionData, syncTime, state.apiKey)
+            }
+          }
+        }
+
+        // Update filters and filtered stats
+        const newFilters = { ...state.filters, time: newTimeFilter }
+        dispatch({ type: 'SET_FILTERS', payload: newFilters })
+
+        // Recalculate filtered stats with new time filter
+        // Use the most current faction data (either updated or existing)
+        const currentData = updatedFactionData || state.factionData
+        const filteredAttacks = DataProcessor.filterAttacks(
+          currentData.attacks,
+          newFilters,
+          currentData.currentMembers
+        )
+        const { memberStats: filteredStats } = DataProcessor.processAttacks(
+          filteredAttacks,
+          currentData.currentMembers
+        )
+        dispatch({ type: 'SET_FILTERED_STATS', payload: filteredStats })
+
+        // Show success toast
+        updateToast(toastId, {
+          type: 'success',
+          title: 'Sync completed!',
+          message: `Updated data for ${newTimeFilter.preset === 'custom' ? 'custom time range' : newTimeFilter.preset}`
+        })
+      } catch (error) {
+        console.error('Failed to sync incremental data:', error)
+        let errorMessage = 'Failed to sync data'
+
+        if (error instanceof TornAPIError) {
+          errorMessage = error.message
+        } else if (error instanceof Error) {
+          errorMessage = error.message
+        }
+
+        dispatch({ type: 'SET_ERROR', payload: errorMessage })
+        
+        // Show error toast
+        updateToast(toastId, {
+          type: 'error',
+          title: 'Sync failed',
+          message: errorMessage
+        })
+      } finally {
+        dispatch({ type: 'SET_LOADING', payload: false })
+      }
+    },
+    [state.apiClient, state.factionData, state.filters, state.apiKey, loadFactionData, showToast, updateToast]
   )
 
   const updateFilters = useCallback(
@@ -321,7 +557,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       if (state.factionData) {
         const filteredAttacks = DataProcessor.filterAttacks(
           state.factionData.attacks,
-          filters
+          filters,
+          state.factionData.currentMembers
         )
         const { memberStats: filteredStats } = DataProcessor.processAttacks(
           filteredAttacks,
@@ -415,6 +652,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     state,
     setApiKey,
     loadFactionData,
+    syncIncrementalData,
     clearCache,
     updateFilters,
     clearData,
