@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useRef } from 'react'
 import { MemberStats } from '../types/api'
 
 interface Props {
@@ -18,6 +18,7 @@ export default function MemberPerformanceTable({ memberStats }: Props) {
     key: 'totalRespect',
     direction: 'desc'
   })
+  const scrollRef = useRef<HTMLDivElement>(null)
 
   const sortedStats = useMemo(() => {
     const sorted = [...memberStats].sort((a, b) => {
@@ -106,6 +107,18 @@ export default function MemberPerformanceTable({ memberStats }: Props) {
     })
   }
 
+  const scrollLeft = () => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollBy({ left: -300, behavior: 'smooth' })
+    }
+  }
+
+  const scrollRight = () => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollBy({ left: 300, behavior: 'smooth' })
+    }
+  }
+
   if (memberStats.length === 0) {
     return (
       <div className="rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-8 text-center shadow-sm">
@@ -135,16 +148,40 @@ export default function MemberPerformanceTable({ memberStats }: Props) {
   return (
     <div className="overflow-hidden rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-sm">
       <div className="border-b border-gray-200 dark:border-gray-700 px-6 py-4">
-        <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100">
-          Member Performance
-        </h3>
-        <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-          {memberStats.length} members • Sorted by {sortConfig.key} (
-          {sortConfig.direction})
-        </p>
+        <div className="flex items-center justify-between">
+          <div>
+            <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100">
+              Member Performance
+            </h3>
+            <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+              {memberStats.length} members • Sorted by {sortConfig.key} (
+              {sortConfig.direction})
+            </p>
+          </div>
+          <div className="hidden md:flex space-x-2">
+            <button
+              onClick={scrollLeft}
+              className="p-2 rounded-md bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
+              title="Scroll left"
+            >
+              <svg className="size-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+              </svg>
+            </button>
+            <button
+              onClick={scrollRight}
+              className="p-2 rounded-md bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
+              title="Scroll right"
+            >
+              <svg className="size-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              </svg>
+            </button>
+          </div>
+        </div>
       </div>
 
-      <div className="overflow-x-auto">
+      <div className="overflow-x-auto scroll-smooth" ref={scrollRef}>
         <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
           <thead className="bg-gray-50 dark:bg-gray-900">
             <tr>
