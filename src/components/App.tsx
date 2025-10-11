@@ -33,6 +33,7 @@ function Dashboard() {
               <Charts
                 memberStats={state.filteredStats}
                 attacks={filteredAttacks}
+                selectedMembers={state.filters.members.selectedMembers}
               />
               <MemberPerformanceTable memberStats={state.filteredStats} />
             </>
