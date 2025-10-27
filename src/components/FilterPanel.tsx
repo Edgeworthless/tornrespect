@@ -3,6 +3,18 @@ import { useApp } from '../contexts/AppContext'
 import { TimeFilter, MemberFilter, AttackFilter, saveTimeFilter } from '../types/filters'
 import { AttackType, AttackResult } from '../types/api'
 
+const formatDateTimeLocalUTC = (date?: Date): string => {
+  if (!date) return ''
+  return date.toISOString().slice(0, 16)
+}
+
+const parseDateTimeLocalUTC = (value: string): Date | undefined => {
+  if (!value) return undefined
+  // Treat the browser input as UTC by adding the Z suffix before parsing
+  const parsed = new Date(`${value}Z`)
+  return Number.isNaN(parsed.getTime()) ? undefined : parsed
+}
+
 export default function FilterPanel() {
   const { state, updateFilters, syncIncrementalData } = useApp()
   const [isExpanded, setIsExpanded] = useState(false)
@@ -164,15 +176,10 @@ export default function FilterPanel() {
                   </label>
                   <input
                     type="datetime-local"
-                    value={
-                      state.filters.time.from?.toISOString().slice(0, 16) ||
-                      ''
-                    }
+                    value={formatDateTimeLocalUTC(state.filters.time.from)}
                     onChange={(e) =>
                       handleTimeFilterChange({
-                        from: e.target.value
-                          ? new Date(e.target.value)
-                          : undefined
+                        from: parseDateTimeLocalUTC(e.target.value)
                       })
                     }
                     disabled={state.isLoading}
@@ -189,15 +196,10 @@ export default function FilterPanel() {
                   </label>
                   <input
                     type="datetime-local"
-                    value={
-                      state.filters.time.to?.toISOString().slice(0, 16) ||
-                      ''
-                    }
+                    value={formatDateTimeLocalUTC(state.filters.time.to)}
                     onChange={(e) =>
                       handleTimeFilterChange({
-                        to: e.target.value
-                          ? new Date(e.target.value)
-                          : undefined
+                        to: parseDateTimeLocalUTC(e.target.value)
                       })
                     }
                     disabled={state.isLoading}
